@@ -1,0 +1,76 @@
+<h2>Milyen legyen a Three.js galéria?</h2>
+<p class="subtitle">A 15 kép a public/work mappából. Mind WebGL/Three.js. Kattints arra, amelyik tetszik.</p>
+
+<style>
+  .mini { background:#0b0b0b; border-radius:10px; padding:14px; height:190px; position:relative; overflow:hidden; }
+  .tile { position:absolute; border-radius:4px; background:linear-gradient(135deg,#2a2a2a,#3d3d3d); border:1px solid #4a4a4a; }
+  .tile.y { background:linear-gradient(135deg,#7a6a10,#f5d020); border-color:#f5d020; }
+  .arrow { position:absolute; color:#f5d020; font-size:22px; font-weight:bold; }
+  .cap { position:absolute; bottom:8px; left:10px; font-family:monospace; font-size:11px; color:#888; }
+</style>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mini">
+        <!-- infinite grid, slightly offset -->
+        <div class="tile" style="left:-20px;top:6px;width:64px;height:48px"></div>
+        <div class="tile" style="left:54px;top:6px;width:64px;height:48px"></div>
+        <div class="tile y" style="left:128px;top:6px;width:64px;height:48px"></div>
+        <div class="tile" style="left:202px;top:6px;width:64px;height:48px"></div>
+        <div class="tile" style="left:-20px;top:62px;width:64px;height:48px"></div>
+        <div class="tile y" style="left:54px;top:62px;width:64px;height:48px"></div>
+        <div class="tile" style="left:128px;top:62px;width:64px;height:48px"></div>
+        <div class="tile" style="left:202px;top:62px;width:64px;height:48px"></div>
+        <div class="tile" style="left:-20px;top:118px;width:64px;height:48px"></div>
+        <div class="tile" style="left:54px;top:118px;width:64px;height:48px"></div>
+        <div class="tile" style="left:128px;top:118px;width:64px;height:48px"></div>
+        <div class="tile y" style="left:202px;top:118px;width:64px;height:48px"></div>
+        <div class="arrow" style="left:120px;top:78px">↖ ↘</div>
+        <div class="cap">drag bármely irányba · végtelen · momentum</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A — Végtelen húzható rács (photodump-replika)</h3>
+      <p>Képek rácsban egy síkon. Bárhová húzható (fel/le/jobbra/balra), végtelenül ismétlődik, lendülettel csúszik. Sebesség-alapú finom torzítás/skálázás. Ez áll legközelebb a linkhez.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mini">
+        <!-- curved horizontal carousel -->
+        <div class="tile" style="left:6px;top:70px;width:46px;height:54px;transform:rotate(-14deg)"></div>
+        <div class="tile" style="left:58px;top:56px;width:52px;height:62px;transform:rotate(-8deg)"></div>
+        <div class="tile y" style="left:116px;top:48px;width:58px;height:70px"></div>
+        <div class="tile" style="left:180px;top:56px;width:52px;height:62px;transform:rotate(8deg)"></div>
+        <div class="tile" style="left:238px;top:70px;width:46px;height:54px;transform:rotate(14deg)"></div>
+        <div class="arrow" style="left:130px;top:140px">← →</div>
+        <div class="cap">vízszintes húzás · ívelt · középen kiemel</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B — Ívelt vízszintes karusszel</h3>
+      <p>Képek egy sorban, hengerpalást-ívben. Vízszintes húzással/lendülettel pörgethető, a középső kép kiemelve. Jól illik az oldal vízszintes scrolljához.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="c" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mini">
+        <!-- masonry wall, hover distortion on one -->
+        <div class="tile" style="left:8px;top:8px;width:74px;height:80px"></div>
+        <div class="tile" style="left:90px;top:8px;width:74px;height:52px"></div>
+        <div class="tile y" style="left:172px;top:8px;width:96px;height:80px;box-shadow:0 0 18px #f5d020"></div>
+        <div class="tile" style="left:90px;top:68px;width:74px;height:80px"></div>
+        <div class="tile" style="left:8px;top:96px;width:74px;height:52px"></div>
+        <div class="tile" style="left:172px;top:96px;width:96px;height:52px"></div>
+        <div class="cap">fix fal · hover = torzulás/RGB shift</div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>C — Fix mozaikfal hover-effekttel</h3>
+      <p>Rögzített, rácsos/mozaik elrendezés. Nincs húzás; a hatás a hoverben van: a kurzor alatt a kép hullámzik/RGB-shift/nagyítás. Egyszerűbb, nem ütközik az oldal scrolljával.</p>
+    </div>
+  </div>
+</div>
