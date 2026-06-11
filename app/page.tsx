@@ -8,6 +8,7 @@ import { FaqSection } from "@/components/sections/faq-section";
 import { AboutSection } from "@/components/sections/about-section";
 import { ContactSection } from "@/components/sections/contact-section";
 import { MagneticButton } from "@/components/magnetic-button";
+import { ArrowRight } from "lucide-react";
 import { useRef, useEffect, useState } from "react";
 
 const SECTIONS = [
@@ -22,8 +23,6 @@ export default function Home() {
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [currentSection, setCurrentSection] = useState(0);
   const [isLoaded, setIsLoaded] = useState(false);
-  const touchStartY = useRef(0);
-  const touchStartX = useRef(0);
   const shaderContainerRef = useRef<HTMLDivElement>(null);
   const scrollThrottleRef = useRef<number>(null);
 
@@ -99,86 +98,9 @@ export default function Home() {
     return () => window.removeEventListener("hashchange", onHashChange);
   }, []);
 
-  useEffect(() => {
-    const container = scrollContainerRef.current;
-    if (!container) return;
-
-    // The active section is the horizontal-scroll child at currentSection.
-    const getActiveSection = () =>
-      container.children[currentSection] as HTMLElement | undefined;
-
-    const scrollState = (section: HTMLElement) => {
-      const canScroll = section.scrollHeight > section.clientHeight + 1;
-      const atTop = section.scrollTop <= 0;
-      const atBottom =
-        section.scrollTop + section.clientHeight >= section.scrollHeight - 1;
-      return { canScroll, atTop, atBottom };
-    };
-
-    const handleTouchStart = (e: TouchEvent) => {
-      touchStartY.current = e.touches[0].clientY;
-      touchStartX.current = e.touches[0].clientX;
-    };
-
-    const handleTouchMove = (e: TouchEvent) => {
-      const dy = e.touches[0].clientY - touchStartY.current;
-      const dx = e.touches[0].clientX - touchStartX.current;
-      // Horizontal gesture → let the container page natively between sections.
-      if (Math.abs(dx) > Math.abs(dy)) return;
-
-      const section = getActiveSection();
-      if (section) {
-        const { canScroll, atTop, atBottom } = scrollState(section);
-        if (canScroll) {
-          const movingUp = dy < 0; // finger up reveals content further down
-          // Allow native vertical scroll inside the section; only block it
-          // (so the swipe can page) when pinned at the relevant edge.
-          if ((movingUp && atBottom) || (!movingUp && atTop)) {
-            e.preventDefault();
-          }
-          return;
-        }
-      }
-      // Non-scrollable section: block body scroll so the swipe can page.
-      if (Math.abs(dy) > 10) e.preventDefault();
-    };
-
-    const handleTouchEnd = (e: TouchEvent) => {
-      const deltaY = touchStartY.current - e.changedTouches[0].clientY;
-      const deltaX = touchStartX.current - e.changedTouches[0].clientX;
-
-      // Ignore horizontal or small swipes — horizontal paging is native.
-      if (Math.abs(deltaY) <= Math.abs(deltaX) || Math.abs(deltaY) <= 50) return;
-
-      const section = getActiveSection();
-      if (section) {
-        const { canScroll, atTop, atBottom } = scrollState(section);
-        // Don't page while there is still content to scroll within the section.
-        if (canScroll && deltaY > 0 && !atBottom) return;
-        if (canScroll && deltaY < 0 && !atTop) return;
-      }
-
-      if (deltaY > 0 && currentSection < 4) {
-        scrollToSection(currentSection + 1);
-      } else if (deltaY < 0 && currentSection > 0) {
-        scrollToSection(currentSection - 1);
-      }
-    };
-
-    container.addEventListener("touchstart", handleTouchStart, {
-      passive: true,
-    });
-    container.addEventListener("touchmove", handleTouchMove, {
-      passive: false,
-    });
-    container.addEventListener("touchend", handleTouchEnd, { passive: true });
-
-    return () => {
-      container.removeEventListener("touchstart", handleTouchStart);
-      container.removeEventListener("touchmove", handleTouchMove);
-      container.removeEventListener("touchend", handleTouchEnd);
-    };
-  }, [currentSection]);
+  // Touch input: no custom handlers — sections only change via native
+  // horizontal swipes (snap scrolling); vertical swipes just scroll within
+  // the active section.
 
   useEffect(() => {
     const handleWheel = (e: WheelEvent) => {
@@ -220,7 +142,7 @@ export default function Home() {
 
       scrollThrottleRef.current = requestAnimationFrame(() => {
         if (!scrollContainerRef.current) {
-          scrollThrottleRef.current = undefined;
+          scrollThrottleRef.current = null;
           return;
         }
 
@@ -236,7 +158,7 @@ export default function Home() {
           setCurrentSection(newSection);
         }
 
-        scrollThrottleRef.current = undefined;
+        scrollThrottleRef.current = null;
       });
     };
 
@@ -270,7 +192,7 @@ export default function Home() {
             colorA="#000000"
             colorB="#c8c8c8"
             opacity={0.32}
-            speed={0.8}
+            speed={1.6}
             detail={0.8}
             blend={50}
             coarseX={40}
@@ -327,7 +249,7 @@ export default function Home() {
 
       {/* Mobile section navigation — dot indicators (desktop uses the top nav) */}
       <div
-        className={`fixed right-4 top-1/2 z-50 flex -translate-y-1/2 flex-col items-center gap-3 transition-opacity duration-700 md:hidden ${
+        className={`fixed left-1/2 top-6 z-50 flex -translate-x-1/2 items-center gap-3 transition-opacity duration-700 md:hidden ${
           isLoaded ? "opacity-100" : "opacity-0"
         }`}
         role="navigation"
@@ -342,11 +264,24 @@ export default function Home() {
             aria-current={currentSection === index ? "true" : undefined}
             className={`rounded-full transition-all duration-300 ${
               currentSection === index
-                ? "h-6 w-1.5 bg-foreground"
+                ? "h-1.5 w-6 bg-foreground"
                 : "h-1.5 w-1.5 bg-foreground/40"
             }`}
           />
         ))}
+      </div>
+
+      {/* Mobile swipe hint — navigation is horizontal-only, cue points right */}
+      <div
+        aria-hidden
+        className={`pointer-events-none fixed bottom-6 left-1/2 z-50 flex -translate-x-1/2 items-center gap-2 rounded-full border border-foreground/15 bg-foreground/10 px-4 py-2 backdrop-blur-md transition-opacity duration-700 md:hidden ${
+          isLoaded && currentSection === 0 ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <span className="font-mono text-[10px] uppercase tracking-[0.25em] text-foreground/70">
+          Görgess jobbra
+        </span>
+        <ArrowRight className="h-3.5 w-3.5 animate-[swipe-hint_1.5s_ease-in-out_infinite] text-foreground" />
       </div>
 
       <div
@@ -406,6 +341,17 @@ export default function Home() {
         div::-webkit-scrollbar,
         section::-webkit-scrollbar {
           display: none;
+        }
+        @keyframes swipe-hint {
+          0%,
+          100% {
+            transform: translateX(0);
+            opacity: 0.5;
+          }
+          50% {
+            transform: translateX(4px);
+            opacity: 1;
+          }
         }
       `}</style>
     </main>
