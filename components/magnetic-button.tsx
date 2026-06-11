@@ -29,7 +29,9 @@ export function MagneticButton({
     const x = e.clientX - rect.left - rect.width / 2
     const y = e.clientY - rect.top - rect.height / 2
 
-    positionRef.current = { x: x * 0.15, y: y * 0.15 }
+    // Round to whole pixels: fractional translate offsets make the 1px border
+    // hairline shimmer (subpixel antialiasing) while the 300ms transition creeps.
+    positionRef.current = { x: Math.round(x * 0.15), y: Math.round(y * 0.15) }
 
     if (rafRef.current) cancelAnimationFrame(rafRef.current)
     rafRef.current = requestAnimationFrame(() => {

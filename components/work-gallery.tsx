@@ -90,6 +90,9 @@ export function WorkGallery() {
     el.style.display = "block";
     el.style.cursor = "grab";
     el.style.opacity = "0";
+    // Let horizontal touch swipes reach the page's section-paging scroller;
+    // touch drags only pan the grid vertically (see onPointerMove).
+    el.style.touchAction = "pan-x";
     container.appendChild(el);
 
     const scene = new THREE.Scene();
@@ -296,10 +299,18 @@ export function WorkGallery() {
       pointer.lastX = e.clientX;
       pointer.lastY = e.clientY;
       pointer.moved += Math.hypot(dx, dy);
-      offset.x += dx;
-      offset.y -= dy;
-      velocity.x = dx;
-      velocity.y = -dy;
+      if (e.pointerType === "touch") {
+        // Horizontal swipes page the sections natively (touch-action: pan-x),
+        // so touch only pans the grid vertically.
+        offset.y -= dy;
+        velocity.x = 0;
+        velocity.y = -dy;
+      } else {
+        offset.x += dx;
+        offset.y -= dy;
+        velocity.x = dx;
+        velocity.y = -dy;
+      }
     }
 
     function onPointerUp(e: PointerEvent) {
@@ -329,19 +340,17 @@ export function WorkGallery() {
       if (e.key === "Escape" && focused) focused = null;
     }
 
-    function stopTouchStart(e: TouchEvent) {
-      e.stopPropagation();
-    }
-    function stopTouchMove(e: TouchEvent) {
-      e.stopPropagation();
-      if (pointer.dragging) e.preventDefault();
+    // Fired when the browser takes over a horizontal touch swipe for native
+    // section paging — end the drag so inertia/cursor state stays consistent.
+    function onPointerCancel() {
+      pointer.dragging = false;
+      el.style.cursor = "grab";
     }
 
     el.addEventListener("pointerdown", onPointerDown);
     el.addEventListener("pointermove", onPointerMove);
     el.addEventListener("pointerup", onPointerUp);
-    el.addEventListener("touchstart", stopTouchStart, { passive: true });
-    el.addEventListener("touchmove", stopTouchMove, { passive: false });
+    el.addEventListener("pointercancel", onPointerCancel);
     window.addEventListener("keydown", onKeyDown);
 
     const resize = () => {
@@ -405,8 +414,7 @@ export function WorkGallery() {
       el.removeEventListener("pointerdown", onPointerDown);
       el.removeEventListener("pointermove", onPointerMove);
       el.removeEventListener("pointerup", onPointerUp);
-      el.removeEventListener("touchstart", stopTouchStart);
-      el.removeEventListener("touchmove", stopTouchMove);
+      el.removeEventListener("pointercancel", onPointerCancel);
       window.removeEventListener("keydown", onKeyDown);
       for (const t of tiles) {
         scene.remove(t.mesh);
